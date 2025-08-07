@@ -1,5 +1,7 @@
 package funsets
 
+import scala.annotation.tailrec
+
 /**
  * 2. Purely Functional Sets.
  */
@@ -18,32 +20,35 @@ trait FunSets extends FunSetsInterface:
   /**
    * Returns the set of the one given element.
    */
-  def singletonSet(elem: Int): FunSet = ???
-
+  def singletonSet(elem: Int): FunSet =
+    x => if (x == elem) true else false
 
   /**
    * Returns the union of the two given sets,
    * the sets of all elements that are in either `s` or `t`.
    */
-  def union(s: FunSet, t: FunSet): FunSet = ???
+  def union(s: FunSet, t: FunSet): FunSet =
+    (x: Int) => contains(s, x) || contains(t, x)
 
   /**
    * Returns the intersection of the two given sets,
    * the set of all elements that are both in `s` and `t`.
    */
-  def intersect(s: FunSet, t: FunSet): FunSet = ???
+  def intersect(s: FunSet, t: FunSet): FunSet =
+    x => contains(s, x) && contains(t, x)
 
   /**
    * Returns the difference of the two given sets,
    * the set of all elements of `s` that are not in `t`.
    */
-  def diff(s: FunSet, t: FunSet): FunSet = ???
+  def diff(s: FunSet, t: FunSet): FunSet =
+    x => contains(s, x) && !contains(t, x)
 
   /**
    * Returns the subset of `s` for which `p` holds.
    */
-  def filter(s: FunSet, p: Int => Boolean): FunSet = ???
-
+  def filter(s: FunSet, p: Int => Boolean): FunSet =
+    (x: Int) => if (contains(s, x)) p(x) else false
 
   /**
    * The bounds for `forall` and `exists` are +/- 1000.
@@ -54,25 +59,43 @@ trait FunSets extends FunSetsInterface:
    * Returns whether all bounded integers within `s` satisfy `p`.
    */
   def forall(s: FunSet, p: Int => Boolean): Boolean =
+    @tailrec
     def iter(a: Int): Boolean =
-      if ??? then
-        ???
-      else if ??? then
-        ???
+      if a > bound then
+        true
+      else if contains(s, a) && !p(a) then
+        false
       else
-        iter(???)
-    iter(???)
+        iter(a + 1)
+
+    iter(-bound)
 
   /**
    * Returns whether there exists a bounded integer within `s`
    * that satisfies `p`.
    */
-  def exists(s: FunSet, p: Int => Boolean): Boolean = ???
+  def exists(s: FunSet, p: Int => Boolean): Boolean =
+    !forall(s, x => !p(x))
 
   /**
    * Returns a set transformed by applying `f` to each element of `s`.
    */
-  def map(s: FunSet, f: Int => Int): FunSet = ???
+  def map(s: FunSet, f: Int => Int): FunSet = {
+    var acc: FunSet = x => false
+
+    @tailrec
+    def loop(a: Int): FunSet = {
+      if (a > bound) acc
+      else if (contains(s, a)) {
+        acc = union(acc, singletonSet(f(a)))
+        loop(a + 1)
+      } else {
+        loop(a + 1)
+      }
+    }
+
+    loop(-bound)
+  }
 
   /**
    * Displays the contents of a set

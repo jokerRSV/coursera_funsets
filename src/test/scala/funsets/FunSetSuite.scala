@@ -67,7 +67,28 @@ class FunSetSuite extends munit.FunSuite:
       assert(!contains(s, 3), "Union 3")
   }
 
+  test("all others") {
+    val s1 = singletonSet(1)
+    val s2 = singletonSet(2)
+    val s3 = singletonSet(3)
+    val s = union(s1, s2)
+    val s22 = singletonSet(2)
 
+    assert(contains(intersect(s, s22), 2), "inter")
+    assert(!contains(intersect(s, s22), 1), "inter")
+
+    assert(contains(diff(s, s22), 1), "diff")
+    assert(contains(diff(s, s3), 1), "diff")
+    assert(contains(diff(s, s3), 2), "diff")
+    assert(!contains(diff(s, s3), 3), "diff")
+    assert(!contains(diff(s, s22), 2), "diff")
+
+    assert(contains(filter(s, _ == 2), 2), "filter")
+    assert(!contains(filter(s, _ == 2), 1), "filter")
+
+    assert(exists(s, _ == 2), "exists")
+    assert(!exists(s, _ == 22), "exists")
+  }
 
   import scala.concurrent.duration.*
   override val munitTimeout = 10.seconds
